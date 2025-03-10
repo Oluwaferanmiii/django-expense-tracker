@@ -10,21 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: myuser
-          POSTGRES_PASSWORD: mypassword
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,18 +21,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
           pip install pipenv
           pipenv install --dev
 
-      - name: Run migrations
-        env:
-          DATABASE_URL: postgres://myuser:mypassword@localhost:5432/test_db
+      - name: Set Environment Variables
+        run: echo "DATABASE_URL=sqlite:///./db.sqlite3" >> $GITHUB_ENV
+  
+      - name: Apply Migrations
         run: |
           pipenv run python manage.py migrate
-
-      - name: Run tests
-        env:
-          DATABASE_URL: postgres://myuser:mypassword@localhost:5432/test_db
+  
+      - name: Run Tests
         run: |
           pipenv run python manage.py test
