@@ -22,15 +22,27 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pipenv
-          pipenv install --dev
+          pipenv install --deploy --dev
 
       - name: Set Environment Variables
-        run: echo "DATABASE_URL=sqlite:///./db.sqlite3" >> $GITHUB_ENV
+        run: echo "DATABASE_URL=sqlite:///${{ github.workspace }}/db.sqlite3" >> $GITHUB_ENV
+
+      - name: Debugging
+        run: |
+          echo "Checking Environment Variables"
+          env | grep DATABASE_URL
+          echo "Checking Python Version"
+          python --version
+          echo "Checking Pipenv Virtual Environment"
+          pipenv --venv || echo "Pipenv environment not found"
   
       - name: Apply Migrations
         run: |
+          pipenv shell --quiet
           pipenv run python manage.py migrate
   
       - name: Run Tests
         run: |
+          pipenv shell --quiet
           pipenv run python manage.py test
+
