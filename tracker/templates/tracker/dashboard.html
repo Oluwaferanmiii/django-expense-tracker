@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-5">
+    <div style="text-align: right; margin-bottom: 10px;">
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
+    
+    <h2 class="text-center mb-4">Welcome, {{ request.user.username }}</h2>
+
+    <!-- Budget Overview -->
+    <div class="row text-center">
+        <div class="col-md-3">
+            <!-- Clickable Total Budget Card -->
+            <button type="button" class="card text-white bg-primary mb-4 w-100" data-bs-toggle="modal" data-bs-target="#setBudgetModal" style="border:none;">
+                <div class="card-body">
+                    <h5 class="card-title">Total Budget</h5>
+                    <p class="card-text fs-4">${{ total_budget }}</p>
+                </div>
+            </button>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Budget Spent</h5>
+                    <p class="card-text fs-4">${{ total_spent }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Budget Left</h5>
+                    <p class="card-text fs-4">${{ budget_left }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Transactions</h5>
+                    <p class="card-text fs-4">{{ total_transactions }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Budget Modal -->
+    <div class="modal fade" id="setBudgetModal" tabindex="-1" aria-labelledby="setBudgetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setBudgetModalLabel">Set Your Budget</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'set_budget' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="total_budget" class="form-label">Total Budget</label>
+                            <input type="number" class="form-control" name="total_budget" id="total_budget" value="{{ total_budget }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Budget</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add Expense Button -->
+    <div class="text-center my-3">
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+        + Add Expense
+    </button>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExpenseModalLabel">Add Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'add_expense' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="category" name="category" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="amount" name="amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sorting Dropdown -->
+    <div class="d-flex justify-content-end mb-3">
+        <form method="GET">
+            <label for="sort" class="me-2 fw-bold">Sort by:</label>
+            <select name="sort" class="form-select w-auto d-inline-block" onchange="this.form.submit()">
+                <option value="">Select</option>
+                <option value="date_asc" {% if request.GET.sort == "date_asc" %}selected{% endif %}>Date (Oldest First)</option>
+                <option value="date_desc" {% if request.GET.sort == "date_desc" %}selected{% endif %}>Date (Newest First)</option>
+                <option value="category_asc" {% if request.GET.sort == "category_asc" %}selected{% endif %}>Category (A-Z)</option>
+                <option value="category_desc" {% if request.GET.sort == "category_desc" %}selected{% endif %}>Category (Z-A)</option>
+            </select>
+        </form>
+    </div>
+
+
+    <!-- Expense List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="text-center">Your Expenses</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.category }}</td>
+                        <td>${{ expense.amount }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.date }}</td>
+                        <td>
+                            <!-- Edit Button -->
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editExpenseModal{{ expense.id }}">
+                                Edit
+                            </button>
+                        
+                            <!-- Delete Button -->
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteExpenseModal{{ expense.id }}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+
+                        <!-- Edit Expense Modal -->
+                    <div class="modal fade" id="editExpenseModal{{ expense.id }}" tabindex="-1" aria-labelledby="editExpenseModalLabel{{ expense.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editExpenseModalLabel{{ expense.id }}">Edit Expense</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" action="{% url 'update_expense' expense.id %}">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="category" class="form-label">Category</label>
+                                            <input type="text" class="form-control" name="category" value="{{ expense.category }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="amount" class="form-label">Amount</label>
+                                            <input type="number" class="form-control" name="amount" value="{{ expense.amount }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="description" class="form-label">Description</label>
+                                            <textarea class="form-control" name="description">{{ expense.description }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="date" class="form-label">Date</label>
+                                            <input type="date" class="form-control" name="date" value="{{ expense.date|date:'Y-m-d' }}" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Expense Modal -->
+                    <div class="modal fade" id="deleteExpenseModal{{ expense.id }}" tabindex="-1" aria-labelledby="deleteExpenseModalLabel{{ expense.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteExpenseModalLabel{{ expense.id }}">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete the expense "<strong>{{ expense.category }}</strong>"?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form method="POST" action="{% url 'delete_expense' expense.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No expenses recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
