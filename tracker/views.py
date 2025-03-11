@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Expense, Budget
-from .forms import ExpenseForm, BudgetForm
+from .models import Expense, Project
 from django.db.models import Sum
 
 
@@ -28,7 +27,7 @@ def login_user(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # Redirect to the dashboard
+            return redirect('project_page')  # Redirect to the project page
         else:
             messages.error(request, "Invalid username or password")
     return render(request, 'tracker/login.html')
@@ -40,34 +39,52 @@ def logout_user(request):
     return redirect('login')  # Redirect to login after logout
 
 
-# Dashboard View
+# Project Page: Display all projects and allow adding new ones
 @login_required
-def dashboard(request):
-    """Display user dashboard with total budget, spent amount, and transactions."""
-    budget = Budget.objects.get_or_create(user=request.user)[
-        0]   # Ensure budget exists
-    expenses = Expense.objects.filter(user=request.user)
+def project_page(request):
+    projects = Project.objects.filter(user=request.user)
+    return render(request, 'tracker/projects.html', {'projects': projects})
 
-    total_budget = budget.total_budget if budget else 0
-    total_spent = expenses.aggregate(Sum('amount'))[
-        'amount__sum'] or 0  # Sum of all expenses
+
+# Add a new project (handled via modal)
+@login_required
+def add_project(request):
+    if request.method == "POST":
+        name = request.POST['name']
+        budget = request.POST['budget']
+        project = Project.objects.create(
+            user=request.user, name=name, budget=budget)
+        # Redirect to project dashboard
+        return redirect('dashboard', project_id=project.id)
+    return render(request, 'tracker/projects.html')
+
+
+# Dashboard now filters expenses by project
+@login_required
+def dashboard(request, project_id):
+    """Display a project-specific dashboard"""
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    expenses = Expense.objects.filter(project=project)
+
+    total_budget = project.budget
+    total_spent = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     budget_left = total_budget - total_spent
     total_transactions = expenses.count()
 
-    # Get sorting parameter from request
     sort_option = request.GET.get("sort", "date_asc")
 
     # Apply sorting
     if sort_option == "date_asc":
-        expenses = expenses.order_by("date")  # Oldest first
+        expenses = expenses.order_by("date")
     elif sort_option == "date_desc":
-        expenses = expenses.order_by("-date")  # Newest first
+        expenses = expenses.order_by("-date")
     elif sort_option == "category_asc":
-        expenses = expenses.order_by("category")  # A-Z
+        expenses = expenses.order_by("category")
     elif sort_option == "category_desc":
-        expenses = expenses.order_by("-category")  # Z-A
+        expenses = expenses.order_by("-category")
 
     context = {
+        "project": project,
         "total_budget": total_budget,
         "total_spent": total_spent,
         "budget_left": budget_left,
@@ -78,77 +95,85 @@ def dashboard(request):
     return render(request, 'tracker/dashboard.html', context)
 
 
-# Set or update budget
-@login_required
-def set_budget(request):
-    """Handles setting or updating the user's budget"""
-    budget, _ = Budget.objects.get_or_create(user=request.user)
-
-    if request.method == "POST":
-        budget.total_budget = request.POST['total_budget']
-        budget.save()
-        return redirect('dashboard')  # Redirect back to the dashboard
-    return render(request, 'tracker/dashboard.html', {'total_budget': budget.total_budget})
-
-
 # List expenses
 @login_required
-def expense_list(request):
-    """Display all expenses."""
-    expenses = Expense.objects.filter(
-        user=request.user)  # Show only user's expenses
+def expense_list(request, project_id):
+    """Display all expenses for a specific project."""
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    expenses = Expense.objects.filter(project=project)
 
-    # Get sorting parameter from request
     sort_option = request.GET.get("sort", "")
 
     # Apply sorting
     if sort_option == "date_asc":
-        expenses = expenses.order_by("date")  # Oldest first
+        expenses = expenses.order_by("date")
     elif sort_option == "date_desc":
-        expenses = expenses.order_by("-date")  # Newest first
+        expenses = expenses.order_by("-date")
     elif sort_option == "category_asc":
-        expenses = expenses.order_by("category")  # A-Z
+        expenses = expenses.order_by("category")
     elif sort_option == "category_desc":
-        expenses = expenses.order_by("-category")  # Z-A
+        expenses = expenses.order_by("-category")
 
-    return render(request, 'tracker/expense_list.html', {'expenses': expenses})
+    return render(request, 'tracker/expense_list.html', {'expenses': expenses, 'project': project})
 
 
-# Add new expense
+# Add new expense now associates with a project
 @login_required
-def add_expense(request):
+def add_expense(request, project_id):
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+
     if request.method == 'POST':
         category = request.POST['category']
         amount = request.POST['amount']
         description = request.POST['description']
         date = request.POST['date']
-        Expense.objects.create(user=request.user, category=category,
+        Expense.objects.create(project=project, category=category,
                                amount=amount, description=description, date=date)
-        return redirect('dashboard')
-    return render(request, 'tracker/dashboard.html')
+        return redirect('dashboard', project_id=project.id)
+
+    return render(request, 'tracker/dashboard.html', {'project': project})
 
 
 # Update an expense
 @login_required
-def update_expense(request, expense_id):
-    """Handle updating an expense"""
-    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+def update_expense(request, project_id, expense_id):
+    """Handle updating an expense inside a specific project"""
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    expense = get_object_or_404(Expense, id=expense_id, project=project)
+
     if request.method == 'POST':
         expense.category = request.POST['category']
         expense.amount = request.POST['amount']
-        expense.description = request.POST['description']
+        expense.description = request.POST.get('description', '')
         expense.date = request.POST['date']
         expense.save()
-        return redirect('dashboard')  # Redirect to dashboard after update
-    return render(request, 'tracker/dashboard.html', {'expense': expense})
+        # Redirect back to project dashboard
+        return redirect('dashboard', project_id=project.id)
+
+    return render(request, 'tracker/dashboard.html', {'expense': expense, 'project': project})
 
 
 # Delete an expense
 @login_required
-def delete_expense(request, expense_id):
+def delete_expense(request, project_id, expense_id):
     """Handle deleting an expense."""
-    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    expense = get_object_or_404(
+        Expense, id=expense_id, project__user=request.user)
+
     if request.method == "POST":
         expense.delete()
-        return redirect('dashboard')  # Redirect to dashboard after deletion
-    return render(request, 'tracker/dashboard.html', {'expense': expense})
+        # Redirect to the correct project dashboard
+        return redirect('dashboard', project_id=project.id)
+
+    return render(request, 'tracker/dashboard.html', {'expense': expense, 'project': project})
+
+
+# Delete a project
+@login_required
+def delete_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    if request.method == "POST":
+        project.delete()
+        return redirect('project_page')  # Redirect to project selection
+    return render(request, 'tracker/projects.html', {'project': project})

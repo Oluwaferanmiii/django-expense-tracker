@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="text-end mb-3">
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
+
+    <h2 class="text-center mb-5">My Projects</h2>
+
+    <!-- Display projects -->
+    <div class="row">
+        {% for project in projects %}
+        <div class="col-md-4">
+            <div class="card text-center shadow-lg mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.name }}</h5>
+                    <a href="{% url 'dashboard' project.id %}" class="btn btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-md-12 text-center">
+            <p>No projects found. Add a new project below.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add Project Button -->
+    <div class="col-md-4">
+        <button type="button" class="btn btn-success w-100 p-5 d-flex flex-column align-items-center justify-content-center shadow-lg"
+            data-bs-toggle="modal" data-bs-target="#addProjectModal" style="height: 120px;">
+            <i style='font-size:24px' class='fas'>&#xf067;</i>
+            <span>Create New Project</span>
+        </button>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'add_project' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Project Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="budget" class="form-label">Budget</label>
+                            <input type="number" class="form-control" id="budget" name="budget" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Project</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

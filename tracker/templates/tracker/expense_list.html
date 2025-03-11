@@ -20,7 +20,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="POST" action="{% url 'add_expense' %}">
+                    <form method="POST" action="{% url 'add_expense' project.id %}">
+
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="category" class="form-label">Category</label>
@@ -83,8 +84,8 @@
                         <td>{{ expense.description }}</td>
                         <td>{{ expense.date }}</td>
                         <td>
-                            <a href="{% url 'update_expense' expense.id %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'delete_expense' expense.id %}" class="btn btn-danger btn-sm">Delete</a>
+                            <a href="{% url 'update_expense' project.id expense.id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'delete_expense' project.id expense.id %}" class="btn btn-danger btn-sm">Delete</a>
                         </td>
                     </tr>
                     {% empty %}

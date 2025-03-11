@@ -1,17 +1,23 @@
 # Django Expense Tracker
 
+---
+
 ## Overview
-The Django Expense Tracker is a web-based financial management tool that helps users track their expenses, set budgets, and view spending insights. It allows users to create, update, and delete expenses, categorize transactions, and visualize financial summaries.
+The Django Expense Tracker is a web-based financial management tool that helps users **track expenses for multiple projects**. Users can create different projects (e.g., "Birthday Party", "School Expenses") and manage expenses separately for each. Every project has its **own budget, transactions, and financial summary**.
+
+---
 
 ## Features
--  User Authentication: Secure login and registration system.
--  Expense Statistics: Total Budget, Budget Spent, Budget Left, and Total Transactions displayed.
--  Expense Management: Add, edit, and delete expenses.
--  Budget Tracking: Set and manage your total budget.
--  Sorting & Filtering: Sort expenses by date or category.
--  Modern UI: Responsive and user-friendly Bootstrap-based design.
--  Budget setting modal
--  Confirmation modal for deleting expenses
+- **User Authentication:** Secure login and registration system.
+- **Multiple Projects Support:** Users can create and manage multiple projects, each with a unique budget.
+- **Project-Based Expense Tracking:** Expenses are linked to specific projects, keeping finances separate.
+- **Expense Management:** Add, edit, and delete expenses for each project.
+- **Expense Statistics:** Total Budget, Budget Spent, Budget Left, and Total Transactions displayed for each project.
+- **Sorting & Filtering:** Sort expenses by date or category.
+- **Modern UI:** Responsive and user-friendly Bootstrap-based design.
+- **Confirmation Modal:** Secure confirmation before deleting expenses.
+
+---
 
 ## Screenshots
 ### Login Page
@@ -20,11 +26,11 @@ The Django Expense Tracker is a web-based financial management tool that helps u
 ### Register Page
 ![Register](images/exp_dj_register.png)
 
+### Project View
+![Set Budget](images/exp_dj_projects.png)
+
 ### Dashboard View
 ![Dashboard](images/exp_dj_dashboard.png)
-
-### Set Budget Modal
-![Set Budget](images/exp_dj_set_budget.png)
 
 ### Add Expense Modal
 ![Add Expense](images/exp_dj_add_expense.png)
@@ -35,6 +41,7 @@ The Django Expense Tracker is a web-based financial management tool that helps u
 ### Delete Expense Modal
 ![Delete Expense](images/exp_dj_delete_expense.png)
 
+---
 
 ## Installation Guide
 ### Prerequisites
@@ -42,6 +49,8 @@ Make sure you have the following installed:
 - Python 3.x
 - Pipenv (for managing virtual environments)
 - Django (installed via Pipfile dependencies)
+
+---
 
 ### Setup Instructions
 1. Clone the Repository
@@ -74,20 +83,22 @@ Make sure you have the following installed:
    ```
    Open your browser and visit http://127.0.0.1:8000/
 
-   if another web app is using the port 8000
-
-   try:
+   if another web app is using the port 8000, try:
    ```sh
    python manage.py runserver 8080
    ```
    Open your browser and visit http://127.0.0.1:8080/
 
+---
+
 ## Usage
 - Register/Login to access the tracker.
-- Set your budget before adding expenses by clicking on total budget.
-- Add expenses with category, amount, description, and date.
-- Edit or delete expenses as needed.
-- Sort expenses by category or date.
+- **Create a new project** (each project has its own budget and expense database).
+- Open a project to **add, edit, or delete expenses**.
+- Track project-specific **total budget, spending, and remaining balance**.
+- Switch between different projects from the **"My Projects" page**.
+
+---
 
 ## Future Improvements
 ### 1. Budget Breakdown & Pie Chart 📊
@@ -103,8 +114,29 @@ Make sure you have the following installed:
    - Allow users to set preferred currency (USD, EUR, INR, etc.).
    - Store currency settings in the UserProfile model.
 
+---
+
 ## Contributing
 If you would like to contribute, feel free to fork the repository and submit a pull request!
 
+---
+
 ## License
 This project is licensed under the MIT License.
+
+---
+### **🚀 Summary of Updates**
+✅ **Removed "Set Budget Modal" references** (since budgets are set when creating a project).  
+✅ **Updated overview to reflect "Multiple Projects" instead of a single dashboard.**  
+✅ **Updated the "Usage" section to explain project-based tracking.**  
+✅ **Removed budget setting instructions since it's part of "Add Project" now.**  
+✅ **Updated the features list to include "Multiple Projects Support".**  
+✅ **Updated screenshots (replace `exp_dj_set_budget.png` with `exp_dj_projects.png`).** 
+
+---
+
+### **Next Steps**
+🔹 **Replace `README.md` with this updated version.**  
+🔹 **Commit and push to GitHub!**  
+
+Let me know if you want any more refinements before pushing! 🚀🔥
