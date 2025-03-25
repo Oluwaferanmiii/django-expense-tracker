@@ -123,20 +123,3 @@ If you would like to contribute, feel free to fork the repository and submit a p
 
 ## License
 This project is licensed under the MIT License.
-
----
-### **🚀 Summary of Updates**
-✅ **Removed "Set Budget Modal" references** (since budgets are set when creating a project).  
-✅ **Updated overview to reflect "Multiple Projects" instead of a single dashboard.**  
-✅ **Updated the "Usage" section to explain project-based tracking.**  
-✅ **Removed budget setting instructions since it's part of "Add Project" now.**  
-✅ **Updated the features list to include "Multiple Projects Support".**  
-✅ **Updated screenshots (replace `exp_dj_set_budget.png` with `exp_dj_projects.png`).** 
-
----
-
-### **Next Steps**
-🔹 **Replace `README.md` with this updated version.**  
-🔹 **Commit and push to GitHub!**  
-
-Let me know if you want any more refinements before pushing! 🚀🔥
